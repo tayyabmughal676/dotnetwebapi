@@ -1,0 +1,133 @@
+@baseUrl = http://localhost:5248
+@contentType = application/json
+
+# After login, copy the token from the response and paste it here
+@token = YOUR_JWT_TOKEN_HERE
+
+###############################################################################
+# AUTHENTICATION ENDPOINTS
+###############################################################################
+
+### Register a new user
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "fullName": "John Doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+
+###
+
+### Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+
+###
+
+### Refresh Token (Requires Authentication)
+POST {{baseUrl}}/api/auth/refresh-token
+Authorization: Bearer {{token}}
+
+###
+
+###############################################################################
+# USER MANAGEMENT ENDPOINTS (Requires Authentication)
+###############################################################################
+
+### Get User Profile
+GET {{baseUrl}}/api/user/profile
+Authorization: Bearer {{token}}
+
+###
+
+### Update User Profile
+PUT {{baseUrl}}/api/user/profile
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "fullName": "John Updated Doe"
+}
+
+###
+
+### Change Password
+POST {{baseUrl}}/api/user/change-password
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "currentPassword": "SecurePass123!",
+  "newPassword": "NewSecurePass456!"
+}
+
+###
+
+### Delete Account
+DELETE {{baseUrl}}/api/user/account
+Authorization: Bearer {{token}}
+
+###
+
+###############################################################################
+# WALLET ENDPOINTS (Requires Authentication)
+###############################################################################
+
+### Get Wallet Balance
+GET {{baseUrl}}/api/wallet/balance
+Authorization: Bearer {{token}}
+
+###
+
+### Deposit Funds
+POST {{baseUrl}}/api/wallet/deposit
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "amount": 500.00
+}
+
+###
+
+### Withdraw Funds
+POST {{baseUrl}}/api/wallet/withdraw
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "amount": 100.00
+}
+
+###
+
+### Transfer Funds to Another User
+POST {{baseUrl}}/api/wallet/transfer
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "receiverEmail": "jane@example.com",
+  "amount": 50.00
+}
+
+###
+
+### Get Transaction History (Paginated)
+GET {{baseUrl}}/api/wallet/transactions?page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+###
+
+### Get Transaction by ID
+GET {{baseUrl}}/api/wallet/transactions/1
+Authorization: Bearer {{token}}
+
+###
