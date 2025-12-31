@@ -1,6 +1,7 @@
 using dotnetweb.Data;
 using dotnetweb.DTOs;
 using dotnetweb.Models;
+using dotnetweb.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,13 @@ public class WalletController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
+    private readonly TransactionExportService _exportService;
 
     public WalletController(ApplicationDbContext context, UserManager<User> userManager)
     {
         _context = context;
         _userManager = userManager;
+        _exportService = new TransactionExportService();
     }
 
     [HttpGet("balance")]
@@ -56,6 +59,7 @@ public class WalletController : ControllerBase
             Amount = model.Amount,
             Type = "Credit",
             Description = "Deposit",
+            Category = "Salary",
             Date = DateTime.UtcNow
         };
         _context.Transactions.Add(transaction);
@@ -97,6 +101,7 @@ public class WalletController : ControllerBase
             Amount = model.Amount,
             Type = "Debit",
             Description = "Withdrawal",
+            Category = "Withdrawal",
             Date = DateTime.UtcNow
         };
         _context.Transactions.Add(transaction);
@@ -156,6 +161,7 @@ public class WalletController : ControllerBase
                 Amount = model.Amount,
                 Type = "Debit",
                 Description = $"Transfer to {model.ReceiverEmail}",
+                Category = "Transfer",
                 Date = DateTime.UtcNow
             };
 
@@ -165,6 +171,7 @@ public class WalletController : ControllerBase
                 Amount = model.Amount,
                 Type = "Credit",
                 Description = $"Transfer from {senderWallet.User.Email}",
+                Category = "Transfer",
                 Date = DateTime.UtcNow
             };
 
@@ -190,17 +197,23 @@ public class WalletController : ControllerBase
     }
 
     [HttpGet("transactions")]
-    public async Task<IActionResult> GetTransactions([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetTransactions([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? category = null)
     {
         var userId = User.FindFirst("id")?.Value;
         var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
         if (wallet == null)
             return NotFound(ApiResponse<object>.ErrorResponse("Wallet not found"));
 
-        var totalCount = await _context.Transactions.CountAsync(t => t.WalletId == wallet.Id);
+        var query = _context.Transactions.Where(t => t.WalletId == wallet.Id);
 
-        var transactions = await _context.Transactions
-            .Where(t => t.WalletId == wallet.Id)
+        if (!string.IsNullOrEmpty(category))
+        {
+            query = query.Where(t => t.Category.ToLower() == category.ToLower());
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var transactions = await query
             .OrderByDescending(t => t.Date)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -210,7 +223,8 @@ public class WalletController : ControllerBase
                 Amount = t.Amount,
                 Type = t.Type,
                 Date = t.Date,
-                Description = t.Description
+                Description = t.Description,
+                Category = t.Category
             })
             .ToListAsync();
 
@@ -240,7 +254,8 @@ public class WalletController : ControllerBase
                 Amount = t.Amount,
                 Type = t.Type,
                 Date = t.Date,
-                Description = t.Description
+                Description = t.Description,
+                Category = t.Category
             })
             .FirstOrDefaultAsync();
 
@@ -248,5 +263,141 @@ public class WalletController : ControllerBase
             return NotFound(ApiResponse<object>.ErrorResponse("Transaction not found"));
 
         return Ok(ApiResponse<object>.SuccessResponse(transaction, "Transaction retrieved successfully"));
+    }
+
+    [HttpGet("transactions/export/csv")]
+    public async Task<IActionResult> ExportTransactionsCsv([FromQuery] string? category = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        var userId = User.FindFirst("id")?.Value;
+        var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+        if (wallet == null)
+            return NotFound(ApiResponse<object>.ErrorResponse("Wallet not found"));
+
+        var query = _context.Transactions.Where(t => t.WalletId == wallet.Id);
+
+        if (!string.IsNullOrEmpty(category))
+            query = query.Where(t => t.Category.ToLower() == category.ToLower());
+
+        if (startDate.HasValue)
+            query = query.Where(t => t.Date >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(t => t.Date <= endDate.Value);
+
+        var transactions = await query
+            .OrderByDescending(t => t.Date)
+            .Select(t => new TransactionDto
+            {
+                Id = t.Id,
+                Amount = t.Amount,
+                Type = t.Type,
+                Date = t.Date,
+                Description = t.Description,
+                Category = t.Category
+            })
+            .ToListAsync();
+
+        if (transactions.Count == 0)
+            return NotFound(ApiResponse<object>.ErrorResponse("No transactions found for export"));
+
+        var csvData = _exportService.ExportToCsv(transactions);
+        return File(csvData, "text/csv", $"transactions_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv");
+    }
+
+    [HttpGet("transactions/export/pdf")]
+    public async Task<IActionResult> ExportTransactionsPdf([FromQuery] string? category = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        var userId = User.FindFirst("id")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(ApiResponse<object>.ErrorResponse("User not authenticated"));
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            return NotFound(ApiResponse<object>.ErrorResponse("User not found"));
+
+        var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+        if (wallet == null)
+            return NotFound(ApiResponse<object>.ErrorResponse("Wallet not found"));
+
+        var query = _context.Transactions.Where(t => t.WalletId == wallet.Id);
+
+        if (!string.IsNullOrEmpty(category))
+            query = query.Where(t => t.Category.ToLower() == category.ToLower());
+
+        if (startDate.HasValue)
+            query = query.Where(t => t.Date >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(t => t.Date <= endDate.Value);
+
+        var transactions = await query
+            .OrderByDescending(t => t.Date)
+            .Select(t => new TransactionDto
+            {
+                Id = t.Id,
+                Amount = t.Amount,
+                Type = t.Type,
+                Date = t.Date,
+                Description = t.Description,
+                Category = t.Category
+            })
+            .ToListAsync();
+
+        if (transactions.Count == 0)
+            return NotFound(ApiResponse<object>.ErrorResponse("No transactions found for export"));
+
+        var userName = !string.IsNullOrEmpty(user.FullName) ? user.FullName : (user.Email ?? "User");
+        var pdfData = _exportService.ExportToPdf(transactions, userName);
+        return File(pdfData, "application/pdf", $"transactions_{DateTime.UtcNow:yyyyMMdd_HHmmss}.pdf");
+    }
+
+    [HttpGet("transactions/categories")]
+    public async Task<IActionResult> GetCategories()
+    {
+        var userId = User.FindFirst("id")?.Value;
+        var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+        if (wallet == null)
+            return NotFound(ApiResponse<object>.ErrorResponse("Wallet not found"));
+
+        var categories = await _context.Transactions
+            .Where(t => t.WalletId == wallet.Id)
+            .Select(t => t.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync();
+
+        return Ok(ApiResponse<object>.SuccessResponse(categories, "Categories retrieved successfully"));
+    }
+
+    [HttpGet("transactions/summary/by-category")]
+    public async Task<IActionResult> GetTransactionsSummaryByCategory([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        var userId = User.FindFirst("id")?.Value;
+        var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+        if (wallet == null)
+            return NotFound(ApiResponse<object>.ErrorResponse("Wallet not found"));
+
+        var query = _context.Transactions.Where(t => t.WalletId == wallet.Id);
+
+        if (startDate.HasValue)
+            query = query.Where(t => t.Date >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(t => t.Date <= endDate.Value);
+
+        var summary = await query
+            .GroupBy(t => t.Category)
+            .Select(g => new
+            {
+                Category = g.Key,
+                TotalAmount = g.Sum(t => t.Amount),
+                TransactionCount = g.Count(),
+                DebitsCount = g.Count(t => t.Type == "Debit"),
+                CreditsCount = g.Count(t => t.Type == "Credit")
+            })
+            .OrderByDescending(s => s.TotalAmount)
+            .ToListAsync();
+
+        return Ok(ApiResponse<object>.SuccessResponse(summary, "Category summary retrieved successfully"));
     }
 }

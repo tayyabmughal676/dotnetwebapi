@@ -1,10 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "GWWLmRLp064=",
+  "dgSpecHash": "3bH/9nvOiuI=",
   "success": true,
   "projectFilePath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
   "expectedPackageFiles": [
+    "/Users/mac/.nuget/packages/bouncycastle/1.8.9/bouncycastle.1.8.9.nupkg.sha512",
+    "/Users/mac/.nuget/packages/csvhelper/33.0.1/csvhelper.33.0.1.nupkg.sha512",
     "/Users/mac/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
+    "/Users/mac/.nuget/packages/itextsharp/5.5.13.3/itextsharp.5.5.13.3.nupkg.sha512",
     "/Users/mac/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/10.0.1/microsoft.aspnetcore.authentication.jwtbearer.10.0.1.nupkg.sha512",
     "/Users/mac/.nuget/packages/microsoft.aspnetcore.identity.entityframeworkcore/10.0.1/microsoft.aspnetcore.identity.entityframeworkcore.10.0.1.nupkg.sha512",
     "/Users/mac/.nuget/packages/microsoft.build/17.7.2/microsoft.build.17.7.2.nupkg.sha512",
@@ -57,5 +60,66 @@
     "/Users/mac/.nuget/packages/system.security.permissions/9.0.0/system.security.permissions.9.0.0.nupkg.sha512",
     "/Users/mac/.nuget/packages/system.windows.extensions/9.0.0/system.windows.extensions.9.0.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'BouncyCastle' 1.8.9 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-8xfc-gm6g-vgpv",
+      "projectPath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "libraryId": "BouncyCastle",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'BouncyCastle' 1.8.9 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m44j-cfrm-g8qc",
+      "projectPath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "libraryId": "BouncyCastle",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'BouncyCastle' 1.8.9 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-v435-xc8x-wvr9",
+      "projectPath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "libraryId": "BouncyCastle",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "message": "Package 'BouncyCastle 1.8.9' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net10.0'. This package may not be fully compatible with your project.",
+      "projectPath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "libraryId": "BouncyCastle",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "message": "Package 'iTextSharp 5.5.13.3' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net10.0'. This package may not be fully compatible with your project.",
+      "projectPath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/mac/Desktop/dotnet-projects/dotnetweb/dotnetweb.csproj",
+      "libraryId": "iTextSharp",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }

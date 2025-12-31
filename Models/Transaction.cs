@@ -13,4 +13,5 @@ public class Transaction
     public string Type { get; set; } = string.Empty; // Credit, Debit
     public DateTime Date { get; set; } = DateTime.UtcNow;
     public string Description { get; set; } = string.Empty;
+    public string Category { get; set; } = "Other"; // Food, Entertainment, Transport, Utilities, Salary, Transfer, Other
 }

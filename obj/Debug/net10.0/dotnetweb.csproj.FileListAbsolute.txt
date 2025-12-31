@@ -190,3 +190,6 @@
 /Users/mac/Desktop/dotnet-projects/dotnetweb/obj/Debug/net10.0/dotnetweb.pdb
 /Users/mac/Desktop/dotnet-projects/dotnetweb/obj/Debug/net10.0/dotnetweb.genruntimeconfig.cache
 /Users/mac/Desktop/dotnet-projects/dotnetweb/obj/Debug/net10.0/ref/dotnetweb.dll
+/Users/mac/Desktop/dotnet-projects/dotnetweb/bin/Debug/net10.0/BouncyCastle.Crypto.dll
+/Users/mac/Desktop/dotnet-projects/dotnetweb/bin/Debug/net10.0/CsvHelper.dll
+/Users/mac/Desktop/dotnet-projects/dotnetweb/bin/Debug/net10.0/itextsharp.dll
