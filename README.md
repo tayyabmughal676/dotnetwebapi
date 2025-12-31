@@ -27,36 +27,100 @@ A complete ASP.NET Core RESTful API with **User Authentication** and **Wallet Ma
 ## 🛠️ Technology Stack
 
 - **Framework**: ASP.NET Core 10.0
-- **Database**: SQLite (with Entity Framework Core)
+- **Database**: PostgreSQL (with Entity Framework Core & Npgsql)
 - **Authentication**: JWT Bearer Tokens
 - **Identity**: ASP.NET Core Identity
 - **API Documentation**: Swagger/OpenAPI
+- **Containerization**: Docker & Docker Compose
 
 ## 📦 Getting Started
 
 ### Prerequisites
 - .NET 10.0 SDK
+- Docker & Docker Compose (for PostgreSQL)
 
-### Installation
+### Installation & Setup
 
-1. Clone the repository
-2. Navigate to the project directory
-3. Restore dependencies:
-   ```bash
-   dotnet restore
-   ```
+#### 1. Clone the repository and navigate to the project directory
+```bash
+cd dotnetweb
+```
 
-4. Apply database migrations:
-   ```bash
-   dotnet tool run dotnet-ef database update
-   ```
+#### 2. Restore dependencies
+```bash
+dotnet restore
+dotnet tool restore
+```
 
-5. Run the application:
-   ```bash
-   dotnet run
-   ```
+#### 3. Start PostgreSQL using Docker Compose
+```bash
+docker compose -f docker-compose.yml up -d --build
+```
+This starts a PostgreSQL container with credentials from `docker-compose.yml`:
+- **User**: dotnetuser
+- **Password**: dotnetpass123
+- **Database**: dotnetwebdb
+- **Port**: 5432
 
-6. Open Swagger UI at: `https://localhost:5001/swagger` or `http://localhost:5000/swagger`
+#### 4. Apply Entity Framework migrations
+Run pending migrations to initialize the database schema:
+```bash
+dotnet ef database update
+```
+
+**Alternative: Create a new migration** (if schema changes):
+```bash
+dotnet ef migrations add MigrationName --output-dir Migrations
+dotnet ef database update
+```
+
+#### 5. Run the application
+```bash
+dotnet run
+```
+
+The API starts on: `http://localhost:5113`
+
+#### 6. Access Swagger UI
+Open your browser to: `http://localhost:5113/swagger`
+
+### Environment Variables
+
+The application uses `.env` file for configuration:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `POSTGRES_USER` | PostgreSQL username | dotnetuser |
+| `POSTGRES_PASSWORD` | PostgreSQL password | dotnetpass123 |
+| `POSTGRES_DB` | PostgreSQL database name | dotnetwebdb |
+| `POSTGRES_PORT` | PostgreSQL port | 5432 |
+| `POSTGRES_HOST` | PostgreSQL host | localhost |
+| `JWT_KEY` | JWT signing key | (see .env.example) |
+| `JWT_ISSUER` | JWT issuer | http://localhost:5113 |
+| `JWT_AUDIENCE` | JWT audience | http://localhost:5113 |
+| `DB_CONNECTION_STRING` | Full connection string | (auto-constructed if not set) |
+| `ASPNETCORE_ENVIRONMENT` | Environment (Development/Production) | Development |
+
+### Useful EF Core CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `dotnet ef migrations list` | List all migrations |
+| `dotnet ef migrations add {name}` | Create a new migration |
+| `dotnet ef database update` | Apply pending migrations |
+| `dotnet ef database update {migration-name}` | Revert/move to specific migration |
+| `dotnet ef migrations remove` | Remove the last migration |
+| `dotnet ef dbcontext info` | Display DbContext info |
+
+### Stopping PostgreSQL
+```bash
+docker compose -f docker-compose.yml down
+```
+
+### Stopping PostgreSQL and removing data
+```bash
+docker compose -f docker-compose.yml down -v
+```
 
 ## 📚 API Endpoints
 
@@ -250,50 +314,66 @@ Authorization: Bearer your-jwt-token-here
 ```
 dotnetweb/
 ├── Controllers/
-│   ├── AuthController.cs      # Authentication endpoints
-│   ├── UserController.cs      # User management endpoints
-│   └── WalletController.cs    # Wallet operations endpoints
+│   ├── AuthController.cs       # Authentication endpoints
+│   ├── UserController.cs       # User management endpoints
+│   └── WalletController.cs     # Wallet operations endpoints
 ├── Data/
 │   └── ApplicationDbContext.cs # EF Core database context
 ├── DTOs/
-│   ├── ApiResponse.cs         # Generic API response wrapper
-│   ├── ChangePasswordDto.cs   # Change password request
-│   ├── DepositDto.cs          # Deposit request
-│   ├── LoginDto.cs            # Login request
-│   ├── RegisterDto.cs         # Registration request
-│   ├── TransactionDto.cs      # Transaction response
-│   ├── TransferDto.cs         # Transfer request
-│   ├── UpdateProfileDto.cs    # Update profile request
-│   ├── UserProfileDto.cs      # User profile response
-│   └── WithdrawDto.cs         # Withdraw request
-├── Migrations/                 # EF Core migrations
+│   ├── ApiResponse.cs          # Generic API response wrapper
+│   ├── ChangePasswordDto.cs    # Change password request
+│   ├── DepositDto.cs           # Deposit request
+│   ├── LoginDto.cs             # Login request
+│   ├── RegisterDto.cs          # Registration request
+│   ├── TransactionDto.cs       # Transaction response
+│   ├── TransferDto.cs          # Transfer request
+│   ├── UpdateProfileDto.cs     # Update profile request
+│   ├── UserProfileDto.cs       # User profile response
+│   └── WithdrawDto.cs          # Withdraw request
+├── Migrations/                  # EF Core migrations (PostgreSQL)
+│   ├── 20251231124841_InitialCreate.cs
+│   ├── 20251231124841_InitialCreate.Designer.cs
+│   ├── 20251231134305_InitialCreatePg.cs
+│   ├── 20251231134305_InitialCreatePg.Designer.cs
+│   └── ApplicationDbContextModelSnapshot.cs
 ├── Models/
-│   ├── Transaction.cs         # Transaction entity
-│   ├── User.cs                # User entity (extends IdentityUser)
-│   └── Wallet.cs              # Wallet entity
-├── Program.cs                  # Application entry point
-├── appsettings.json           # Configuration
-└── app.db                     # SQLite database file
+│   ├── Transaction.cs          # Transaction entity
+│   ├── User.cs                 # User entity (extends IdentityUser)
+│   └── Wallet.cs               # Wallet entity
+├── Properties/
+│   └── launchSettings.json     # Launch profile settings
+├── Program.cs                   # Application entry point & service registration
+├── appsettings.json            # Configuration (connection string, JWT)
+├── appsettings.Development.json# Development-specific configuration
+├── docker-compose.yml          # PostgreSQL container setup
+├── dotnet-tools.json           # Local tool references (dotnet-ef)
+├── dotnetweb.csproj            # Project file
+└── README.md                   # This file
 ```
 
 ## ⚙️ Configuration
 
-The `appsettings.json` file contains the following configuration:
+### Database Connection
+
+The `appsettings.json` file contains the PostgreSQL connection string:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=app.db"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=dotnetwebdb;Username=dotnetuser;Password=dotnetpass123"
   },
   "Jwt": {
-    "Key": "your-secret-key-here",
+    "Key": "ThisIsASecretKeyForMyAwesomeAppThatIsLongEnoughToSecureIt12345!",
     "Issuer": "http://localhost:5248",
     "Audience": "http://localhost:5248"
   }
 }
 ```
 
-> ⚠️ **Important**: In production, replace the JWT key with a strong, unique secret and store it securely (e.g., environment variables, Azure Key Vault).
+> ⚠️ **Important**: In production:
+> - Replace the JWT key with a strong, unique secret and store it securely (e.g., environment variables, Azure Key Vault)
+> - Use a secure PostgreSQL password (currently set to `dotnetpass123` for development)
+> - Update connection string to match production database
 
 ## 📄 License
 

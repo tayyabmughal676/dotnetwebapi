@@ -1,0 +1,90 @@
+# .NET / Visual Studio
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.dbmdl
+*.mdf
+*.ldf
+*.suo
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+*.user
+*.userprefs
+*.ncb
+*.aps
+*.vcproj.*.user
+*.vcxproj.*.user
+*.vcproj.*.user
+*.vcxproj.*.user
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Entity Framework
+*.db
+*.db-shm
+*.db-wal
+Migrations_backup*/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Environment & Configuration
+appsettings.Development.json
+.env
+.env.local
+.env.*.local
+secrets.json
+
+# Runtime artifacts
+.dotnet/
+
+# Docker
+docker-compose.override.yml
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# Testing
+TestResults/
+.coverage/
+
+# Package lock files (optional - uncomment if you want to lock versions)
+# package-lock.json
+# yarn.lock

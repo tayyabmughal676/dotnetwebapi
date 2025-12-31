@@ -51,7 +51,15 @@ public class AuthController : ControllerBase
             // Create Wallet
             var wallet = new Wallet { UserId = user.Id, Balance = 0 };
             _context.Wallets.Add(wallet);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Database error while creating wallet", new List<string> { inner }));
+            }
 
             return Ok(ApiResponse<object>.SuccessResponse(new { UserId = user.Id, Email = user.Email }, "User registered successfully"));
         }
@@ -73,10 +81,12 @@ public class AuthController : ControllerBase
         if (result.Succeeded)
         {
             var token = GenerateJwtToken(user);
-            return Ok(ApiResponse<object>.SuccessResponse(new { 
-                Token = token, 
+            return Ok(ApiResponse<object>.SuccessResponse(new
+            {
+                Token = token,
                 Expiration = DateTime.UtcNow.AddDays(7),
-                User = new {
+                User = new
+                {
                     Id = user.Id,
                     Email = user.Email,
                     FullName = user.FullName
@@ -103,9 +113,10 @@ public class AuthController : ControllerBase
         }
 
         var token = GenerateJwtToken(user);
-        return Ok(ApiResponse<object>.SuccessResponse(new { 
-            Token = token, 
-            Expiration = DateTime.UtcNow.AddDays(7) 
+        return Ok(ApiResponse<object>.SuccessResponse(new
+        {
+            Token = token,
+            Expiration = DateTime.UtcNow.AddDays(7)
         }, "Token refreshed successfully"));
     }
 
@@ -115,8 +126,8 @@ public class AuthController : ControllerBase
         var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[] { 
-                new Claim("id", user.Id), 
+            Subject = new ClaimsIdentity(new[] {
+                new Claim("id", user.Id),
                 new Claim(ClaimTypes.Email, user.Email!),
                 new Claim(ClaimTypes.Name, user.FullName)
             }),

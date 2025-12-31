@@ -100,7 +100,15 @@ public class UserController : ControllerBase
             var transactions = await _context.Transactions.Where(t => t.WalletId == wallet.Id).ToListAsync();
             _context.Transactions.RemoveRange(transactions);
             _context.Wallets.Remove(wallet);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Database error while deleting account data", new List<string> { inner }));
+            }
         }
 
         var result = await _userManager.DeleteAsync(user);
